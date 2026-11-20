@@ -158,7 +158,7 @@ footer b{color:#fff}
  <h2>Frequently asked questions</h2><p>Quick answers before you start.</p>
  <details><summary>Is I Love Doc Converter really free?</summary><p>Yes. There is no account and no charge for the tools on this page.</p></details>
  <details><summary>What happens to my files?</summary><p>Files are processed in a temporary workspace and deleted once your result is sent. Please avoid uploading highly confidential documents.</p></details>
- <details><summary>What is the size limit?</summary><p>You can upload up to 20 files, with a combined size of 250 MB per conversion.</p></details>
+ <details><summary>What is the size limit?</summary><p>You can upload up to 20 files, with a combined size of 100 MB per conversion.</p></details>
  <details><summary>My PDF is scanned. What should I do?</summary><p>Use “OCR PDF to text” to extract text from scanned pages. Scanned PDFs cannot be converted directly to Word or Excel with good accuracy.</p></details>
  <details><summary>Why does the converted layout look different?</summary><p>Results depend on how the original file is built. Complex layouts and tables may need a quick manual check.</p></details>
 </section>
@@ -181,7 +181,7 @@ const TOOLS=[
 ];
 const $=id=>document.getElementById(id);
 const sel=$('action'),grid=$('grid'),picker=$('files'),drop=$('drop'),list=$('list'),msg=$('msg'),go=$('go'),fmt=$('fmt');
-const MAX_MB=250;
+const MAX_MB=100;
 let files=[];
 TOOLS.forEach(t=>{
  sel.add(new Option(t[1],t[0]));
