@@ -14,7 +14,7 @@ from openpyxl.utils import get_column_letter
 from docx import Document
 
 app = Flask(__name__)
-app.config["MAX_CONTENT_LENGTH"] = 250 * 1024 * 1024  # 250 MB total request
+app.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024  # 100 MB total request
 ALLOWED = {".pdf", ".doc", ".docx", ".xls", ".xlsx", ".jpg", ".jpeg", ".png", ".tif", ".tiff", ".bmp"}
 MAX_FILES = 20
 
@@ -319,7 +319,7 @@ def convert():
 
 @app.errorhandler(413)
 def too_large(_):
-    return jsonify({"error": "Upload too large. Maximum total upload size is 250 MB."}), 413
+    return jsonify({"error": "Upload too large. Maximum total upload size is 100 MB."}), 413
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000, debug=False)
