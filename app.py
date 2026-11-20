@@ -14,7 +14,7 @@ from openpyxl.utils import get_column_letter
 from docx import Document
 
 app = Flask(__name__)
-app.config["MAX_CONTENT_LENGTH"] = 40 * 1024 * 1024  # 40 MB total request
+app.config["MAX_CONTENT_LENGTH"] = 250 * 1024 * 1024  # 250 MB total request
 ALLOWED = {".pdf", ".doc", ".docx", ".xls", ".xlsx", ".jpg", ".jpeg", ".png", ".tif", ".tiff", ".bmp"}
 MAX_FILES = 20
 
@@ -282,7 +282,7 @@ def run_conversion(action, uploads, work):
     if not outputs: raise RuntimeError("No output was produced.")
     if len(outputs) == 1:
         return outputs[0], outputs[0].name
-    bundle = outdir / "docuconvert_results.zip"
+    bundle = outdir / "doc_converter_results.zip"
     with zipfile.ZipFile(bundle, "w", zipfile.ZIP_DEFLATED) as z:
         for out in outputs: z.write(out, out.name)
     return bundle, bundle.name
@@ -298,7 +298,7 @@ def convert():
     try:
         uploads = check_files(uploads)
         # Temporary directory is removed after response is sent, including errors.
-        work = Path(tempfile.mkdtemp(prefix="docuconvert_"))
+        work = Path(tempfile.mkdtemp(prefix="docconverter_"))
         try:
             output, download_name = run_conversion(action, uploads, work)
             data = output.read_bytes()
@@ -319,7 +319,7 @@ def convert():
 
 @app.errorhandler(413)
 def too_large(_):
-    return jsonify({"error": "Upload too large. Maximum total upload size is 40 MB."}), 413
+    return jsonify({"error": "Upload too large. Maximum total upload size is 250 MB."}), 413
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000, debug=False)
