@@ -3,4 +3,5 @@ services:
     name: i-love-doc-converter
     runtime: docker
     plan: free
-    healthCheckPath: /health
+    healthCheckPath: /
+
