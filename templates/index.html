@@ -1,70 +1,115 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>I Love Doc Converter — Free Document Tools</title>
-<meta name="description" content="I Love Doc Converter helps you convert PDFs, Word documents, Excel spreadsheets and images online.">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#10213b">
+<title>I Love Doc Converter — Simple, Free Document Tools</title>
+<meta name="description" content="Convert PDF, Word, Excel and image files with I Love Doc Converter. Simple online document tools with temporary processing.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--ink:#172338;--muted:#66758a;--blue:#4169e1;--line:#e3e9f2;--bg:#f6f8fc;--green:#168765}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif}
-header{background:#fff;border-bottom:1px solid var(--line)}.nav{max-width:1120px;margin:auto;padding:18px 24px;display:flex;align-items:center;gap:12px}
-.logo{width:40px;height:40px;background:#eaf0ff;color:var(--blue);border-radius:12px;display:grid;place-items:center;font-size:22px;font-weight:800}.brand{font:800 21px Manrope,sans-serif}.brand span{color:var(--blue)}.navnote{margin-left:auto;color:var(--muted);font-size:13px}
-main{max-width:1000px;margin:0 auto;padding:46px 22px 70px}.hero{text-align:center;margin-bottom:30px}.eyebrow{color:var(--blue);font-weight:700;font-size:12px;letter-spacing:1.6px;text-transform:uppercase}
-h1{font:800 clamp(30px,5vw,48px)/1.15 Manrope,sans-serif;letter-spacing:-1.5px;margin:13px 0}.hero p{color:var(--muted);font-size:16px;line-height:1.7;max-width:620px;margin:0 auto}
-.panel{background:white;border:1px solid var(--line);border-radius:22px;padding:25px;box-shadow:0 16px 40px #243c6510}
-label{font-weight:700;font-size:14px;display:block;margin-bottom:10px}.tools{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:25px}
-.tool{position:relative;border:1px solid var(--line);background:#fff;border-radius:13px;padding:14px 12px;text-align:left;cursor:pointer;color:var(--ink);min-height:88px;transition:.15s}
-.tool:hover{border-color:#9cb1f7}.tool.active{border:2px solid var(--blue);background:#f4f7ff;padding:13px 11px}
-.tool .ico{font-size:22px;display:block;margin-bottom:8px}.tool strong{font-size:12px;line-height:1.3;display:block}.tool input{position:absolute;opacity:0}
-.drop{border:1.5px dashed #bdc9db;background:#fafcff;border-radius:16px;text-align:center;padding:30px 15px;cursor:pointer}.drop.drag{border-color:var(--blue);background:#f1f5ff}.cloud{font-size:30px}.drop h3{margin:9px 0 5px;font:700 17px Manrope}.drop p{color:var(--muted);font-size:13px;margin:0}.drop b{color:var(--blue)}
-.filelist{margin-top:12px;display:grid;gap:8px}.file{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px}.file span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.file small{margin-left:auto;color:var(--muted);white-space:nowrap}.actions{display:flex;align-items:center;gap:14px;margin-top:22px;flex-wrap:wrap}.primary{border:0;background:var(--blue);color:white;padding:14px 23px;border-radius:12px;font-weight:700;font-size:14px;cursor:pointer}.primary:disabled{opacity:.55;cursor:wait}.privacy{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}.message{display:none;margin-top:16px;padding:12px 14px;border-radius:10px;font-size:13px}.message.error{display:block;background:#fff0f0;color:#9f2d2d}.message.info{display:block;background:#edf5ff;color:#244d95}.below{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-top:22px}.feature{background:white;border:1px solid var(--line);padding:18px;border-radius:15px}.feature b{display:block;margin:7px 0;font-size:14px}.feature p{font-size:12px;color:var(--muted);line-height:1.6;margin:0}footer{text-align:center;color:var(--muted);font-size:12px;padding:25px;border-top:1px solid var(--line);background:white}
-@media(max-width:760px){.tools{grid-template-columns:repeat(2,1fr)}.below{grid-template-columns:1fr}.panel{padding:17px}main{padding-top:32px}.navnote{display:none}}
-</style></head>
+:root{--ink:#17253e;--muted:#63718a;--blue:#4169e1;--blue-dark:#294fc6;--line:#e2e8f2;--bg:#f4f7fc;--white:#fff;--green:#168765;--shadow:0 20px 60px rgba(29,52,93,.09)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse at 50% 0%,#eaf0ff 0,transparent 42%),var(--bg);color:var(--ink);font-family:"DM Sans",sans-serif}
+a{color:inherit}.topbar{background:rgba(255,255,255,.88);border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}
+.nav{max-width:1160px;margin:auto;padding:15px 24px;display:flex;align-items:center;gap:12px}.logo{width:42px;height:42px;display:grid;place-items:center;border-radius:14px;color:#fff;background:linear-gradient(145deg,#5578f4,#294fc6);font-size:21px;box-shadow:0 7px 18px #4169e133}.brand{font:800 19px Manrope,sans-serif;letter-spacing:-.6px}.brand span{color:var(--blue)}.nav-right{margin-left:auto;display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}.status-dot{width:7px;height:7px;background:#20a477;border-radius:50%;display:inline-block}
+main{max-width:1080px;margin:0 auto;padding:48px 22px 66px}.hero{text-align:center;max-width:780px;margin:0 auto 28px}.eyebrow{display:inline-flex;align-items:center;gap:8px;border:1px solid #dce5ff;background:#fff;border-radius:999px;padding:7px 12px;color:var(--blue-dark);font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase}
+h1{font:800 clamp(34px,5.8vw,56px)/1.08 Manrope,sans-serif;letter-spacing:-2.3px;margin:19px 0 15px}.gradient{background:linear-gradient(100deg,#4169e1,#7c57d8);background-clip:text;-webkit-background-clip:text;color:transparent}.hero p{max-width:650px;margin:0 auto;color:var(--muted);font-size:16px;line-height:1.75}
+.trust{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;margin-top:19px;color:#53647d;font-size:12px}.trust span{display:flex;align-items:center;gap:6px}
+.panel{background:var(--white);border:1px solid #e1e8f3;border-radius:24px;padding:26px;box-shadow:var(--shadow)}.section-title{display:flex;align-items:center;gap:10px;margin:0 0 15px;font:800 14px Manrope,sans-serif}.step{width:25px;height:25px;border-radius:8px;background:#edf2ff;color:var(--blue);display:grid;place-items:center;font-size:12px}
+.tools{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:25px}.tool{position:relative;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:8px;min-height:94px;padding:13px;border:1px solid var(--line);border-radius:15px;background:#fff;text-align:left;cursor:pointer;transition:border-color .16s,background .16s,transform .16s;color:var(--ink)}.tool:hover{border-color:#aabaff;transform:translateY(-1px)}.tool.active{border:1.5px solid var(--blue);background:#f4f7ff;box-shadow:0 0 0 3px #4169e10c}.tool .ico{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:#f0f4ff;font-size:19px}.tool strong{font-size:12px;line-height:1.35;font-weight:700}.tool input{position:absolute;opacity:0;pointer-events:none}.tool:focus-within{outline:3px solid #4169e133;outline-offset:2px}
+.upload-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.upload-title .section-title{margin:0}.limit{color:var(--muted);font-size:11px;white-space:nowrap}
+.drop{border:1.5px dashed #bac8df;background:linear-gradient(180deg,#fbfcff,#f7f9fe);border-radius:18px;text-align:center;padding:30px 16px;cursor:pointer;transition:.16s}.drop:hover,.drop.drag{border-color:var(--blue);background:#f0f4ff}.upload-icon{margin:auto;width:53px;height:53px;display:grid;place-items:center;background:#eaf0ff;color:var(--blue);border-radius:16px;font-size:25px}.drop h3{margin:13px 0 5px;font:800 16px Manrope,sans-serif}.drop p{color:var(--muted);font-size:12px;margin:0}.drop b{color:var(--blue)}
+.filelist{margin-top:11px;display:grid;gap:8px}.file{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:#fbfcff;border-radius:11px;padding:10px 12px;font-size:12px}.file-icon{width:30px;height:30px;border-radius:8px;background:#edf2ff;color:var(--blue);display:grid;place-items:center;flex-shrink:0}.file-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.file small{margin-left:auto;color:var(--muted);white-space:nowrap}.actions{display:flex;align-items:center;gap:14px;margin-top:20px;flex-wrap:wrap}.primary{border:0;background:linear-gradient(100deg,var(--blue),var(--blue-dark));color:white;padding:14px 22px;border-radius:12px;font-weight:800;font-size:13px;cursor:pointer;box-shadow:0 8px 18px #4169e12a;transition:.15s}.primary:hover{transform:translateY(-1px);box-shadow:0 10px 22px #4169e13a}.primary:disabled{opacity:.58;cursor:wait;transform:none}.privacy{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px}.message{display:none;margin-top:15px;padding:12px 14px;border-radius:12px;font-size:12px;line-height:1.55;overflow-wrap:anywhere}.message.error{display:block;background:#fff0f0;color:#982d36;border:1px solid #f6d5d8}.message.info{display:block;background:#eef7ff;color:#244d95;border:1px solid #d8e8ff}.message.success{display:block;background:#edf9f3;color:#176c4b;border:1px solid #d2f0df}
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-top:18px}.feature{background:rgba(255,255,255,.83);border:1px solid var(--line);padding:18px;border-radius:16px}.feature .feature-icon{font-size:20px}.feature b{display:block;margin:9px 0 5px;font:800 13px Manrope,sans-serif}.feature p{font-size:11px;color:var(--muted);line-height:1.65;margin:0}.notice{margin-top:18px;padding:13px 15px;border:1px solid #f0dfb6;background:#fffaf0;color:#755b22;border-radius:13px;font-size:11px;line-height:1.6}
+footer{text-align:center;color:var(--muted);font-size:11px;padding:24px;border-top:1px solid var(--line);background:#fff}footer .footer-brand{font-weight:800;color:var(--ink);margin-bottom:6px}
+@media(max-width:900px){.tools{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:620px){.nav{padding:12px 16px}.brand{font-size:16px}.nav-right{display:none}main{padding:32px 13px 42px}h1{letter-spacing:-1.4px}.hero p{font-size:14px}.panel{padding:16px;border-radius:19px}.tools{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.tool{min-height:84px;padding:11px}.tool.active{padding:10px}.upload-title{align-items:flex-start;flex-direction:column;gap:4px}.features{grid-template-columns:1fr}.actions{align-items:stretch;flex-direction:column}.primary{width:100%}.privacy{justify-content:center;text-align:center}}
+</style>
+</head>
 <body>
-<header><div class="nav"><div class="logo">♥</div><div class="brand">I Love <span>Doc Converter</span></div><div class="navnote">Free tools · Files processed temporarily</div></div></header>
-<main><section class="hero"><div class="eyebrow">Simple. Secure. Useful.</div><h1>Every document.<br>One easy place.</h1><p>Convert, organize, and extract documents in a few clicks. Select a tool, upload your files, and download the result.</p></section>
+<header class="topbar"><div class="nav"><div class="logo">♥</div><div class="brand">I Love <span>Doc Converter</span></div><div class="nav-right"><span class="status-dot"></span> Free online document tools</div></div></header>
+<main>
+<section class="hero">
+<div class="eyebrow">✦ Simple document tools</div>
+<h1>Your files, <span class="gradient">made easier.</span></h1>
+<p>Convert PDFs, Word documents, spreadsheets and images in a few simple steps. Choose a tool, add your files, and download your result.</p>
+<div class="trust"><span>✓ No account required</span><span>✓ Multiple-file support</span><span>✓ Up to 40 MB per batch</span></div>
+</section>
 <section class="panel">
 <form id="form">
-<label>1. Choose a tool</label>
+<div class="section-title"><span class="step">1</span> Choose a tool</div>
 <div class="tools" id="tools">
 <label class="tool active"><input type="radio" name="action" value="pdf_word" checked><span class="ico">📄</span><strong>PDF to Word</strong></label>
 <label class="tool"><input type="radio" name="action" value="word_pdf"><span class="ico">📝</span><strong>Word to PDF</strong></label>
 <label class="tool"><input type="radio" name="action" value="pdf_excel"><span class="ico">📊</span><strong>PDF to Excel</strong></label>
 <label class="tool"><input type="radio" name="action" value="excel_pdf"><span class="ico">📈</span><strong>Excel to PDF</strong></label>
 <label class="tool"><input type="radio" name="action" value="image_pdf"><span class="ico">🖼️</span><strong>Image to PDF</strong></label>
-<label class="tool"><input type="radio" name="action" value="pdf_images"><span class="ico">🌄</span><strong>PDF to JPG/PNG</strong></label>
+<label class="tool"><input type="radio" name="action" value="pdf_images"><span class="ico">🌄</span><strong>PDF to PNG</strong></label>
 <label class="tool"><input type="radio" name="action" value="merge"><span class="ico">🗂️</span><strong>Merge PDFs</strong></label>
-<label class="tool"><input type="radio" name="action" value="split"><span class="ico">✂️</span><strong>Split PDFs (one page each)</strong></label>
+<label class="tool"><input type="radio" name="action" value="split"><span class="ico">✂️</span><strong>Split PDF pages</strong></label>
 <label class="tool"><input type="radio" name="action" value="compress"><span class="ico">🗜️</span><strong>Compress PDF</strong></label>
-<label class="tool"><input type="radio" name="action" value="ocr"><span class="ico">🔎</span><strong>OCR scanned PDF to text</strong></label>
-<label class="tool"><input type="radio" name="action" value="pdf_word"><span class="ico">✨</span><strong>PDF to editable Word</strong></label>
+<label class="tool"><input type="radio" name="action" value="ocr"><span class="ico">🔎</span><strong>OCR PDF to text</strong></label>
 </div>
-<label>2. Upload files <span style="font-weight:400;color:#77859a">(up to 20 files, 40 MB total)</span></label>
-<div class="drop" id="drop"><div class="cloud">☁️</div><h3>Drop your files here</h3><p>or <b>browse files</b> from your device</p><input type="file" id="files" name="files" multiple hidden accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.tif,.tiff,.bmp"></div>
-<div class="filelist" id="filelist"></div>
-<div class="actions"><button class="primary" id="submit" type="submit">Convert documents →</button><div class="privacy">🔒 Temporary processing — files are not saved in an account</div></div>
-<div class="message" id="message" role="status"></div>
-</form></section>
-<section class="below"><div class="feature"><span>⚡</span><b>Simple workflow</b><p>Choose a conversion, upload files, and download the result without creating an account.</p></div><div class="feature"><span>🔐</span><b>Temporary file handling</b><p>Files are processed in a temporary workspace and removed after the response closes. Avoid uploading highly sensitive documents to an unverified deployment.</p></div><div class="feature"><span>📚</span><b>Multiple-file support</b><p>Convert batches and receive a ZIP when a tool produces multiple output files.</p></div></section>
-</main><footer>© 2026 I Love Doc Converter · Free document tools · Use only files you have permission to process.</footer>
+<div class="upload-title"><div class="section-title"><span class="step">2</span> Add your files</div><span class="limit">Up to 20 files · 40 MB total</span></div>
+<div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose or drop files"><div class="upload-icon">↑</div><h3>Drop files here to get started</h3><p>or <b>browse your device</b> · PDF, Word, Excel and images</p><input type="file" id="files" name="files" multiple hidden accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.tif,.tiff,.bmp"></div>
+<div class="filelist" id="filelist" aria-live="polite"></div>
+<div class="actions"><button class="primary" id="submit" type="submit">Convert files <span aria-hidden="true">→</span></button><div class="privacy">🔒 Files are processed for conversion; avoid sensitive documents.</div></div>
+<div class="message" id="message" role="status" aria-live="polite"></div>
+</form>
+</section>
+<section class="features">
+<div class="feature"><span class="feature-icon">⚡</span><b>Quick workflow</b><p>Pick a tool, upload files, and download your result without creating an account.</p></div>
+<div class="feature"><span class="feature-icon">🛡️</span><b>Privacy-minded</b><p>Files use a temporary processing workspace. Do not upload highly sensitive documents; temporary deletion can be affected by errors or interrupted requests.</p></div>
+<div class="feature"><span class="feature-icon">📚</span><b>Batch-friendly</b><p>Upload multiple files at once. Tools that create multiple outputs return a ZIP archive.</p></div>
+</section>
+<div class="notice"><strong>Conversion tip:</strong> Results depend on the structure and quality of your original file. Scanned PDFs and complex tables may need OCR or manual review.</div>
+</main>
+<footer><div class="footer-brand">I Love Doc Converter</div>Free document tools · Only process files you have permission to use.</footer>
 <script>
-const form=document.getElementById('form'), picker=document.getElementById('files'), drop=document.getElementById('drop'), list=document.getElementById('filelist'), msg=document.getElementById('message'), submit=document.getElementById('submit');
+const form=document.getElementById('form'),picker=document.getElementById('files'),drop=document.getElementById('drop'),list=document.getElementById('filelist'),msg=document.getElementById('message'),submit=document.getElementById('submit');
 let selected=[];
-document.querySelectorAll('.tool input').forEach(r=>r.addEventListener('change',()=>{document.querySelectorAll('.tool').forEach(t=>t.classList.toggle('active',t.contains(r)&&r.checked));msg.className='message';msg.textContent='';}));
+const clearMessage=()=>{msg.className='message';msg.textContent='';};
+document.querySelectorAll('.tool input').forEach(r=>r.addEventListener('change',()=>{document.querySelectorAll('.tool').forEach(t=>t.classList.toggle('active',t.contains(r)&&r.checked));clearMessage();}));
 drop.addEventListener('click',()=>picker.click());
+drop.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();picker.click();}});
 picker.addEventListener('change',()=>{selected=Array.from(picker.files);showFiles();});
 drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('drag')});
 drop.addEventListener('dragleave',()=>drop.classList.remove('drag'));
 drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('drag');selected=Array.from(e.dataTransfer.files);showFiles();});
-function showFiles(){list.innerHTML='';selected.forEach(f=>{let row=document.createElement('div');row.className='file';let name=document.createElement('span');name.textContent='📎 '+f.name;let size=document.createElement('small');size.textContent=(f.size/1024/1024).toFixed(2)+' MB';row.append(name,size);list.append(row)});msg.className='message';msg.textContent='';}
-form.addEventListener('submit',async e=>{e.preventDefault();msg.className='message';msg.textContent='';if(!selected.length){msg.className='message error';msg.textContent='Please select at least one file.';return}if(selected.length>20){msg.className='message error';msg.textContent='Please select no more than 20 files.';return}if(selected.reduce((a,f)=>a+f.size,0)>40*1024*1024){msg.className='message error';msg.textContent='Selected files exceed the 40 MB total limit.';return}
-const data=new FormData();data.append('action',form.querySelector('input[name=action]:checked').value);selected.forEach(f=>data.append('files',f));
-submit.disabled=true;submit.textContent='Processing…';
-try{const res=await fetch('/convert',{method:'POST',body:data});if(!res.ok){let err='Conversion failed.';try{err=(await res.json()).error||err}catch{}throw new Error(err)}
-const blob=await res.blob();const cd=res.headers.get('Content-Disposition')||'';const match=cd.match(/filename="?([^"]+)"?/i);const filename=match?match[1]:'docuconvert-result';const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);msg.className='message info';msg.textContent='Conversion complete. Your download should start automatically.';selected=[];picker.value='';showFiles();}
-catch(err){msg.className='message error';msg.textContent=err.message||'Something went wrong.'}
-finally{submit.disabled=false;submit.textContent='Convert documents →';}
+function showFiles(){
+ list.innerHTML='';
+ selected.forEach(f=>{
+  const row=document.createElement('div');row.className='file';
+  const icon=document.createElement('div');icon.className='file-icon';icon.textContent='↗';
+  const name=document.createElement('span');name.className='file-name';name.textContent=f.name;
+  const size=document.createElement('small');size.textContent=(f.size/1024/1024).toFixed(2)+' MB';
+  row.append(icon,name,size);list.append(row);
+ });
+ clearMessage();
+}
+form.addEventListener('submit',async e=>{
+ e.preventDefault();clearMessage();
+ if(!selected.length){msg.className='message error';msg.textContent='Please choose at least one file first.';return;}
+ if(selected.length>20){msg.className='message error';msg.textContent='Please choose no more than 20 files at once.';return;}
+ if(selected.reduce((a,f)=>a+f.size,0)>40*1024*1024){msg.className='message error';msg.textContent='These files exceed the 40 MB total limit. Please choose a smaller batch.';return;}
+ const action=form.querySelector('input[name=action]:checked').value;
+ const data=new FormData();data.append('action',action);selected.forEach(f=>data.append('files',f));
+ submit.disabled=true;submit.textContent='Processing your files…';
+ try{
+  const res=await fetch('/convert',{method:'POST',body:data});
+  if(!res.ok){let err='Conversion failed. Please check the file type and try again.';try{const body=await res.json();err=body.error||err;}catch{}throw new Error(err);}
+  const blob=await res.blob();
+  if(!blob.size)throw new Error('The server returned an empty file. Please try again with another document.');
+  const cd=res.headers.get('Content-Disposition')||'';const match=cd.match(/filename="?([^"]+)"?/i);
+  const filename=match?match[1]:'doc-converter-result';
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2500);
+  msg.className='message success';msg.textContent='Conversion complete. Your download should start automatically. Please review important values against the original file.';
+  selected=[];picker.value='';list.innerHTML='';
+ }catch(err){msg.className='message error';msg.textContent=err.message||'Something went wrong. Please try again.';}
+ finally{submit.disabled=false;submit.innerHTML='Convert files <span aria-hidden="true">→</span>';}
 });
-</script></body></html>
+</script>
+</body>
+</html>
