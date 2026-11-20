@@ -113,20 +113,77 @@ def run_conversion(action, uploads, work):
 
             wb = Workbook()
             ws = wb.active
-            ws.title = "PDF Data"
-            ws.freeze_panes = "A2"
+            ws.title = "Extracted Data"
             ws.sheet_view.showGridLines = False
+            ws.freeze_panes = "A2"
+            ws.sheet_properties.pageSetUpPr.fitToPage = True
+            ws.page_setup.fitToWidth = 1
+            ws.page_setup.fitToHeight = 0
+            ws.sheet_view.zoomScale = 90
 
-            header_fill = PatternFill("solid", fgColor="1F4E78")
-            header_font = Font(bold=True, color="FFFFFF")
-            thin_gray = Side(style="thin", color="D9E2F3")
-            cell_border = Border(bottom=thin_gray)
+            header_fill = PatternFill("solid", fgColor="183B66")
+            header_font = Font(bold=True, color="FFFFFF", size=10)
+            section_fill = PatternFill("solid", fgColor="EAF1F8")
+            section_font = Font(bold=True, color="183B66", size=10)
+            body_font = Font(name="Aptos", size=10, color="243247")
+            bottom_line = Side(style="thin", color="D9E2EF")
+            table_border = Border(bottom=bottom_line)
+
+            def clean_cell(value):
+                if value is None:
+                    return ""
+                value = str(value).replace("\x00", " ")
+                return re.sub(r"\s+", " ", value).strip()
+
+            def nonempty_rows(table):
+                rows = []
+                max_cols = max((len(row) for row in table), default=0)
+                for row in table:
+                    cleaned = [clean_cell(cell) for cell in row]
+                    if not any(cleaned):
+                        continue
+                    cleaned.extend([""] * (max_cols - len(cleaned)))
+                    # Skip repeated empty/near-empty extraction artefacts.
+                    if rows and cleaned == rows[-1]:
+                        continue
+                    rows.append(cleaned)
+                return rows
+
+            def append_table(table, section_label=None):
+                rows = nonempty_rows(table)
+                if not rows:
+                    return
+                if section_label:
+                    if ws.max_row > 1 or ws.cell(1, 1).value is not None:
+                        ws.append([])
+                    ws.append([section_label])
+                    section_row = ws.max_row
+                    ws.cell(section_row, 1).font = section_font
+                    ws.cell(section_row, 1).fill = section_fill
+                    ws.merge_cells(start_row=section_row, start_column=1,
+                                   end_row=section_row, end_column=max(1, max(len(r) for r in rows)))
+                header_row = ws.max_row + 1
+                for row in rows:
+                    ws.append(row)
+                for cell in ws[header_row]:
+                    cell.fill = header_fill
+                    cell.font = header_font
+                    cell.alignment = Alignment(vertical="center", wrap_text=True)
+                    cell.border = table_border
+                ws.row_dimensions[header_row].height = 30
+                for row_idx in range(header_row + 1, ws.max_row + 1):
+                    for cell in ws[row_idx]:
+                        cell.font = body_font
+                        cell.alignment = Alignment(vertical="top", wrap_text=True)
+                        cell.border = table_border
+                        if isinstance(cell.value, str):
+                            cell.value = cell.value.strip()
 
             with pdfplumber.open(str(p)) as pdf:
                 for page_no, page in enumerate(pdf.pages, 1):
-                    # Try common table layouts before falling back to page text.
                     tables = []
-                    table_settings_options = [
+                    # Try ruled-table extraction first, then spacing/text-based detection.
+                    settings_options = [
                         {
                             "vertical_strategy": "lines",
                             "horizontal_strategy": "lines",
@@ -143,89 +200,46 @@ def run_conversion(action, uploads, work):
                             "text_y_tolerance": 3,
                         },
                     ]
-
-                    for settings in table_settings_options:
+                    for settings in settings_options:
                         try:
-                            candidate_tables = page.extract_tables(table_settings=settings) or []
-                            candidate_tables = [
-                                table for table in candidate_tables
-                                if table and any(
-                                    any(cell is not None and str(cell).strip() for cell in row)
-                                    for row in table
-                                )
-                            ]
-                            if candidate_tables:
-                                tables = candidate_tables
+                            candidates = page.extract_tables(table_settings=settings) or []
+                            candidates = [nonempty_rows(t) for t in candidates if t]
+                            candidates = [t for t in candidates if t and max(map(len, t), default=0) >= 2]
+                            if candidates:
+                                # Prefer the strategy that returns the most useful table cells.
+                                tables = candidates
                                 break
                         except Exception:
                             continue
 
                     if tables:
                         for table_no, table in enumerate(tables, 1):
-                            # Label each extracted table so multiple pages/tables are identifiable.
-                            ws.append([f"Page {page_no} — Table {table_no}"])
-                            title_row = ws.max_row
-                            ws.cell(title_row, 1).font = Font(bold=True, color="1F1F1F", size=11)
-
-                            first_data_row = ws.max_row + 1
-                            max_cols = max((len(row) for row in table), default=1)
-
-                            for row in table:
-                                cleaned = []
-                                for cell in row:
-                                    if cell is None:
-                                        cleaned.append("")
-                                    else:
-                                        cleaned.append(re.sub(r"\s+", " ", str(cell)).strip())
-                                cleaned.extend([""] * (max_cols - len(cleaned)))
-                                ws.append(cleaned)
-
-                            # Style the first row of each detected table as its header.
-                            for cell in ws[first_data_row]:
-                                cell.fill = header_fill
-                                cell.font = header_font
-                                cell.alignment = Alignment(vertical="top", wrap_text=True)
-                                cell.border = cell_border
-
-                            for row in ws.iter_rows(min_row=first_data_row + 1, max_row=ws.max_row):
-                                for cell in row:
-                                    cell.alignment = Alignment(vertical="top", wrap_text=True)
-                                    cell.border = cell_border
-                            ws.append([])
+                            append_table(table, f"Page {page_no} · Table {table_no}")
                     else:
-                        # Layout mode often preserves column spacing in digitally generated PDFs.
+                        # Fallback: preserve readable text and split columns only at wide gaps.
                         text = page.extract_text(layout=True) or page.extract_text() or ""
                         lines = [line.rstrip() for line in text.splitlines() if line.strip()]
                         if not lines:
-                            ws.append([f"Page {page_no}: No extractable text found. This may be a scanned PDF; use OCR."])
-                            ws.append([])
+                            append_table([[f"No selectable text found on page {page_no}. This may be a scanned PDF; try OCR first."]],
+                                         f"Page {page_no} · No table detected")
                             continue
-
-                        ws.append([f"Page {page_no} — extracted text (table structure not detected)"])
-                        title_row = ws.max_row
-                        ws.cell(title_row, 1).font = Font(bold=True, color="1F1F1F", size=11)
-
-                        first_data_row = ws.max_row + 1
+                        fallback_rows = []
                         for line in lines:
-                            # Split only on wider gaps; ordinary spaces inside names/phrases stay together.
-                            parts = [part.strip() for part in re.split(r"\s{2,}", line.strip())]
-                            ws.append(parts if parts else [line.strip()])
+                            parts = [part.strip() for part in re.split(r"\s{3,}", line.strip())]
+                            fallback_rows.append(parts if parts else [line.strip()])
+                        append_table(fallback_rows, f"Page {page_no} · Text fallback (table layout not detected)")
 
-                        for row_idx in range(first_data_row, ws.max_row + 1):
-                            for cell in ws[row_idx]:
-                                cell.alignment = Alignment(vertical="top", wrap_text=True)
-                                cell.border = cell_border
-                        ws.append([])
-
-            # Set readable widths without allowing long text to create enormous columns.
+            # Make the workbook readable without creating extremely wide columns.
             for col_idx in range(1, ws.max_column + 1):
-                max_len = 0
-                for cell in ws.iter_cols(min_col=col_idx, max_col=col_idx, min_row=1, max_row=ws.max_row):
-                    for item in cell:
-                        value = "" if item.value is None else str(item.value)
-                        max_len = max(max_len, min(len(value), 55))
-                ws.column_dimensions[get_column_letter(col_idx)].width = min(max(max_len + 2, 12), 38)
+                values = []
+                for row_idx in range(1, ws.max_row + 1):
+                    value = ws.cell(row_idx, col_idx).value
+                    if value is not None:
+                        values.append(str(value))
+                max_len = max((min(len(v), 48) for v in values), default=10)
+                ws.column_dimensions[get_column_letter(col_idx)].width = min(max(max_len + 3, 12), 34)
 
+            ws.auto_filter.ref = f"A1:{get_column_letter(max(1, ws.max_column))}{max(1, ws.max_row)}"
             out = outdir / f"{p.stem}.xlsx"
             wb.save(out)
             outputs.append(out)
@@ -301,7 +315,7 @@ def convert():
             shutil.rmtree(work, ignore_errors=True)
             raise
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        return jsonify({"error": str(e) or "Conversion failed. Please check the file and try again."}), 400
 
 @app.errorhandler(413)
 def too_large(_):
