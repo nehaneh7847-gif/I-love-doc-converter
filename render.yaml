@@ -1,6 +1,6 @@
-services:
+ervices:
   - type: web
     name: i-love-doc-converter
     runtime: docker
     plan: free
-    healthCheckPath: /
+    healthCheckPath: /health
