@@ -1,4 +1,4 @@
-import base64, io, json, os, re, shutil, subprocess, tempfile, uuid, zipfile
+import base64, glob, io, json, os, re, shutil, subprocess, tempfile, uuid, zipfile
 from pathlib import Path
 from flask import Flask, render_template, request, send_file, jsonify
 from werkzeug.utils import secure_filename
@@ -345,15 +345,48 @@ def _base14(name):
     ital = "italic" in n or "oblique" in n
     if any(k in n for k in ("courier", "mono", "consolas")):
         fam = ("cour", "cobo", "coit", "cobi")
-    elif ("sans" not in n and "arial" not in n and "helvet" not in n and "calibri" not in n) and any(
-            k in n for k in ("times", "serif", "georgia", "garamond", "palatino", "minion", "cambria", "roman")):
+    elif "sans" not in n and any(k in n for k in ("times", "serif", "georgia", "garamond", "palatino", "minion", "cambria", "roman")):
         fam = ("tiro", "tibo", "tiit", "tibi")
     else:
         fam = ("helv", "hebo", "heit", "hebi")
     return fam[(1 if bold else 0) + (2 if ital else 0)]
 
+# System fonts installed in the Docker image (see Dockerfile). Order: regular, bold, italic, bold-italic.
+_FAMILIES = {
+    "sans": ("LiberationSans-Regular.ttf", "LiberationSans-Bold.ttf", "LiberationSans-Italic.ttf", "LiberationSans-BoldItalic.ttf"),
+    "serif": ("LiberationSerif-Regular.ttf", "LiberationSerif-Bold.ttf", "LiberationSerif-Italic.ttf", "LiberationSerif-BoldItalic.ttf"),
+    "mono": ("LiberationMono-Regular.ttf", "LiberationMono-Bold.ttf", "LiberationMono-Italic.ttf", "LiberationMono-BoldItalic.ttf"),
+    "carlito": ("Carlito-Regular.ttf", "Carlito-Bold.ttf", "Carlito-Italic.ttf", "Carlito-BoldItalic.ttf"),
+    "caladea": ("Caladea-Regular.ttf", "Caladea-Bold.ttf", "Caladea-Italic.ttf", "Caladea-BoldItalic.ttf"),
+    "dejavu": ("DejaVuSans.ttf", "DejaVuSans-Bold.ttf", "DejaVuSans-Oblique.ttf", "DejaVuSans-BoldOblique.ttf"),
+}
+_FAMILY_LABEL = {"sans": "Liberation Sans (Arial-like)", "serif": "Liberation Serif (Times-like)", "mono": "Liberation Mono (Courier-like)",
+                 "carlito": "Carlito (Calibri-like)", "caladea": "Caladea (Cambria-like)", "dejavu": "DejaVu Sans"}
+_font_cache = {}
+
+def _find_font_file(filename):
+    if filename not in _font_cache:
+        hits = glob.glob(os.path.join("/usr/share/fonts", "**", filename), recursive=True)
+        _font_cache[filename] = hits[0] if hits else None
+    return _font_cache[filename]
+
+def _families_for(name):
+    n = (name or "").lower().replace(" ", "").replace("-", "").replace("_", "")
+    if any(k in n for k in ("courier", "mono", "consolas", "lucidaconsole")):
+        return ["mono", "dejavu"]
+    if "calibri" in n or "carlito" in n:
+        return ["carlito", "sans", "dejavu"]
+    if "cambria" in n or "caladea" in n:
+        return ["caladea", "serif", "dejavu"]
+    if any(k in n for k in ("verdana", "tahoma", "segoe", "dejavu")):
+        return ["dejavu", "sans"]
+    if "sans" not in n and any(k in n for k in ("times", "georgia", "garamond", "palatino", "minion", "bookman", "century", "serif")):
+        return ["serif", "dejavu"]
+    return ["sans", "dejavu"]
+
 def _pick_font(doc, page, srcfont, text):
-    """Prefer the PDF's own embedded font if it has every glyph needed; else closest base-14 font."""
+    """Returns (fontname, fontfile, fontbuffer, label). Order: the PDF's own font -> closest system font -> base-14."""
+    need = [ord(ch) for ch in text if not ch.isspace()]
     if srcfont:
         want = srcfont.split("+")[-1]
         try:
@@ -364,19 +397,35 @@ def _pick_font(doc, page, srcfont, text):
                 if not buf:
                     continue
                 font = fitz.Font(fontbuffer=buf)
-                if all(font.has_glyph(ord(ch)) for ch in text if not ch.isspace()):
-                    return "emb%d" % item[0], buf
+                if all(font.has_glyph(c) for c in need):
+                    return "emb%d" % item[0], None, buf, "original font (" + want + ")"
         except Exception:
             pass
-    return _base14(srcfont), None
+    n = (srcfont or "").lower()
+    idx = (1 if any(k in n for k in ("bold", "black", "heavy", "semibold", "demi")) else 0) + \
+          (2 if ("italic" in n or "oblique" in n) else 0)
+    for fam in _families_for(srcfont):
+        path = _find_font_file(_FAMILIES[fam][idx])
+        if not path:
+            continue
+        try:
+            if all(fitz.Font(fontfile=path).has_glyph(c) for c in need):
+                return "sys%s%d" % (fam, idx), path, None, _FAMILY_LABEL[fam] + " (closest match)"
+        except Exception:
+            continue
+    return _base14(srcfont), None, None, "standard PDF font"
 
-def _put_text(doc, page, pt, text, size, color, srcfont):
-    fn, buf = _pick_font(doc, page, srcfont, text)
+def _put_text(doc, page, pt, text, size, color, srcfont, used):
+    fn, path, buf, label = _pick_font(doc, page, srcfont, text)
     if buf:
         page.insert_font(fontname=fn, fontbuffer=buf)
+    elif path:
+        page.insert_font(fontname=fn, fontfile=path)
     page.insert_text(fitz.Point(*pt), text, fontname=fn, fontsize=size, color=color)
+    used.add(label)
 
 def apply_pdf_edits(doc, edits):
+    used = set()
     per_page = {}
     for kind in ("replace", "add", "sigs"):
         for e in edits.get(kind, []):
@@ -399,14 +448,14 @@ def apply_pdf_edits(doc, edits):
                 text = str(e.get("text", ""))[:2000]
                 if text.strip():
                     _put_text(doc, page, (float(e["origin"][0]), float(e["origin"][1])), text,
-                              float(e["size"]), _rgb_int(e.get("color")), e.get("font"))
+                              float(e["size"]), _rgb_int(e.get("color")), e.get("font"), used)
             for e in items["add"]:
                 size = min(max(float(e.get("size", 12)), 4), 200)
                 color = _rgb_hex(e.get("color"))
                 for i, line in enumerate(str(e.get("text", ""))[:4000].split("\n")):
                     if line.strip():
                         _put_text(doc, page, (float(e["x"]), float(e["y"]) + size + i * size * 1.2),
-                                  line, size, color, None)
+                                  line, size, color, None, used)
             for e in items["sigs"]:
                 raw = base64.b64decode(str(e["png"]).split(",")[-1])
                 if len(raw) > 3_000_000:
@@ -416,6 +465,7 @@ def apply_pdf_edits(doc, edits):
         finally:
             if rot:
                 page.set_rotation(rot)
+    return used
 
 @app.get("/edit")
 def edit_page():
@@ -466,11 +516,13 @@ def edit_save():
         doc = fitz.open(stream=f.read(), filetype="pdf")
         if doc.needs_pass:
             raise ValueError("This PDF is password protected. Please unlock it first.")
-        apply_pdf_edits(doc, edits)
+        used = apply_pdf_edits(doc, edits)
         data = doc.tobytes(garbage=3, deflate=True)
         doc.close()
         name = "edited_" + (secure_filename(f.filename) or "document.pdf")
-        return send_file(io.BytesIO(data), mimetype="application/pdf", as_attachment=True, download_name=name)
+        resp = send_file(io.BytesIO(data), mimetype="application/pdf", as_attachment=True, download_name=name)
+        resp.headers["X-Font-Info"] = ", ".join(sorted(used))[:300].encode("ascii", "ignore").decode()
+        return resp
     except Exception as e:
         return jsonify({"error": str(e) or "Could not save the edited PDF."}), 400
 
