@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1d4ed8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Cdefs%3E%3ClinearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22%3E%3Cstop offset=%220%22 stop-color=%22%232f7bff%22/%3E%3Cstop offset=%221%22 stop-color=%22%231445b8%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2264%22 height=%2264%22 rx=%2215%22 fill=%22url%28%23g%29%22/%3E%3Cpath d=%22M19 12h19l9 9v28a3 3 0 0 1-3 3H19a3 3 0 0 1-3-3V15a3 3 0 0 1 3-3z%22 fill=%22%23fff%22/%3E%3Cpath d=%22M38 12v9h9z%22 fill=%22%23cfe0ff%22/%3E%3Cpath d=%22M23 30h18M23 37h18M23 44h11%22 stroke=%22%231d5be0%22 stroke-width=%223.5%22 stroke-linecap=%22round%22/%3E%3C/svg%3E">
+<title>Edit PDF – I Love Doc Converter</title>
+<meta name="description" content="Edit text in a PDF, add new text and sign your PDF online with I Love Doc Converter.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#0f1f4d;--ink:#14213d;--muted:#5d6b85;--blue:#1d5be0;--blue-d:#1445b8;--line:#dde5f2;--bg:#f3f6fc}
+*{box-sizing:border-box}
+body{margin:0;font-family:Poppins,system-ui,sans-serif;color:var(--ink);background:var(--bg)}
+[hidden]{display:none!important}
+.top{background:#fff;border-bottom:1px solid var(--line)}
+.nav{max-width:1240px;margin:auto;padding:12px 24px;display:flex;align-items:center;gap:14px}
+.brand{display:flex;align-items:center;gap:12px;font-weight:700;font-size:21px;color:var(--navy);text-decoration:none}
+.mark{width:42px;height:42px;border-radius:11px;background:linear-gradient(145deg,#2f7bff,#1445b8);display:grid;place-items:center}
+.back{margin-left:auto;color:var(--blue);font-weight:600;text-decoration:none;font-size:14px}
+.bar{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--line);box-shadow:0 6px 20px rgba(15,31,77,.06)}
+.bar-in{max-width:1240px;margin:auto;padding:10px 24px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{border:1.5px solid #c9d6ee;background:#fff;color:var(--ink);border-radius:9px;padding:9px 14px;font:500 14px Poppins,sans-serif;cursor:pointer}
+.btn:hover{border-color:#8fb0f5}.btn.on{border-color:var(--blue);background:#eaf1ff;color:var(--blue)}
+.btn.pri{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:600}.btn.pri:hover{background:var(--blue-d)}
+.btn:disabled{opacity:.55;cursor:wait}
+.gap{flex:1}
+.opt{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.opt input[type=number]{width:62px;padding:7px;border:1.5px solid #c9d6ee;border-radius:8px;font:inherit;color:var(--ink)}
+.opt input[type=color]{width:36px;height:32px;border:1.5px solid #c9d6ee;border-radius:8px;padding:2px;background:#fff}
+.hint{max-width:1240px;margin:12px auto 0;padding:0 24px;font-size:13px;color:var(--muted)}
+.msg{max-width:900px;margin:12px auto 0;padding:11px 14px;border-radius:10px;font-size:14px;overflow-wrap:anywhere}
+.msg.err{background:#fff0f0;color:#982d36;border:1px solid #f6d5d8}.msg.info{background:#eef7ff;color:#244d95;border:1px solid #d8e8ff}.msg.ok{background:#edf9f3;color:#176c4b;border:1px solid #cdeedb}
+#start{max-width:640px;margin:48px auto;padding:0 18px}
+.drop{background:#fff;border:2px dashed #5b8cf0;border-radius:18px;text-align:center;padding:44px 20px}
+.drop.drag{background:#e8f0ff}
+.drop h1{margin:10px 0 4px;font-size:26px;color:var(--navy)}.drop p{margin:0 0 18px;color:var(--muted);font-size:14px}
+.note{margin-top:16px;font-size:12.5px;color:var(--muted);line-height:1.6}
+#pages{max-width:900px;margin:16px auto 60px;padding:0 14px;display:grid;gap:18px}
+.pg{position:relative;background:#fff;width:100%;box-shadow:0 6px 24px rgba(15,31,77,.16);--k:1}
+.pg img{position:absolute;inset:0;width:100%;height:100%;user-select:none;-webkit-user-drag:none}
+.sp{position:absolute;white-space:pre;color:transparent;font-family:Arial,Helvetica,sans-serif;border-radius:2px;outline:1px solid transparent;pointer-events:none}
+body[data-mode=edit] .sp{pointer-events:auto;cursor:text}
+body[data-mode=edit] .sp:hover{outline-color:#6f97ee;background:rgba(65,105,225,.09)}
+.sp.chg,.sp:focus{background:#fff;color:var(--c);outline:1.5px solid var(--blue)}
+body[data-mode=add] .pg,body[data-mode=place] .pg{cursor:crosshair}
+.add{position:absolute}
+.add .tx{display:block;white-space:pre;line-height:1.2;font-family:Arial,Helvetica,sans-serif;min-width:30px;padding:0 2px;outline:1.5px dashed #6f97ee}
+.sig{position:absolute;outline:1.5px dashed #6f97ee}.sig img{position:static;width:100%;height:100%;display:block}
+.x{position:absolute;top:-11px;right:-11px;width:22px;height:22px;border-radius:50%;border:0;background:#e5484d;color:#fff;font-size:14px;line-height:22px;cursor:pointer;padding:0}
+#modal{position:fixed;inset:0;background:rgba(15,31,77,.55);display:grid;place-items:center;z-index:50;padding:14px}
+.mbox{background:#fff;border-radius:16px;padding:20px;width:100%;max-width:600px}
+.mbox h3{margin:0 0 10px;color:var(--navy)}
+canvas{width:100%;border:1.5px dashed #8fb0f5;border-radius:10px;background:#fff;touch-action:none;cursor:crosshair}
+.mrow{display:flex;gap:10px;margin-top:12px;align-items:center}
+@media(max-width:640px){.nav,.bar-in{padding-left:14px;padding-right:14px}.brand{font-size:17px}.hint{padding:0 14px}}
+</style>
+</head>
+<body data-mode="edit">
+<header class="top"><div class="nav">
+ <a class="brand" href="/"><span class="mark"><svg width="22" height="24" viewBox="0 0 24 26" fill="none"><path d="M3 1h12l6 6v17a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z" fill="#fff"/><path d="M15 1v6h6" fill="#cfe0ff"/><path d="M6 12h10M6 16h10M6 20h6" stroke="#1d5be0" stroke-width="2" stroke-linecap="round"/></svg></span>I Love Doc Converter</a>
+ <a class="back" href="/">← All tools</a>
+</div></header>
+
+<section id="start">
+ <div class="drop" id="drop">
+  <svg width="56" height="46" viewBox="0 0 64 52" fill="none" stroke="#1d5be0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 40a12 12 0 0 1-1-24 16 16 0 0 1 31 3 10 10 0 0 1 0 21"/><path d="M32 46V26M24 33l8-8 8 8"/></svg>
+  <h1>Edit PDF</h1>
+  <p>Change existing text, add new text and place your signature.</p>
+  <button class="btn pri" id="choose" type="button">Choose PDF</button>
+  <input type="file" id="file" accept=".pdf" hidden>
+ </div>
+ <div class="note"><b>Good to know:</b> Edited text uses the PDF’s own font when it is available in the file, otherwise the closest standard font (same size and colour). Scanned PDFs have no editable text, but you can still add text and signatures. Up to 30 pages per file.</div>
+ <div class="msg" id="msg0" hidden></div>
+</section>
+
+<section id="work" hidden>
+ <div class="bar"><div class="bar-in">
+  <button class="btn on" data-m="edit" type="button">✎ Edit text</button>
+  <button class="btn" data-m="add" type="button">T Add text</button>
+  <label class="opt">Size <input type="number" id="fs" value="12" min="4" max="200"></label>
+  <label class="opt">Colour <input type="color" id="fc" value="#000000"></label>
+  <button class="btn" id="sign" type="button">✍ Signature</button>
+  <span class="gap"></span>
+  <button class="btn" id="newfile" type="button">Change file</button>
+  <button class="btn pri" id="save" type="button">Download PDF</button>
+ </div></div>
+ <div class="hint" id="hint"></div>
+ <div class="msg" id="msg" hidden></div>
+ <div id="pages"></div>
+</section>
+
+<div id="modal" hidden><div class="mbox">
+ <h3>Draw your signature</h3>
+ <canvas id="cv" width="560" height="200"></canvas>
+ <div class="mrow"><button class="btn" id="clr" type="button">Clear</button><span class="gap"></span><button class="btn" id="cancel" type="button">Cancel</button><button class="btn pri" id="use" type="button">Use signature</button></div>
+</div></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const HINTS={edit:'Click any text on the page and type to change it. Empty it to delete the text.',add:'Click on the page where you want the new text.',place:'Click on the page where you want your signature.'};
+let file=null,pages=[],mode='edit',sig=null;
+
+function note(text,type,el){el=el||($('work').hidden?$('msg0'):$('msg'));el.hidden=!text;el.className='msg '+(type||'info');el.textContent=text||''}
+function setMode(m){mode=m;document.body.dataset.mode=m;$('hint').textContent=HINTS[m];
+ document.querySelectorAll('[data-m]').forEach(b=>b.classList.toggle('on',b.dataset.m===m));$('sign').classList.toggle('on',m==='place')}
+document.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>setMode(b.dataset.m));
+
+/* ---------- loading ---------- */
+const drop=$('drop');
+$('choose').onclick=()=>$('file').click();$('newfile').onclick=()=>$('file').click();
+$('file').onchange=e=>{if(e.target.files[0])load(e.target.files[0]);e.target.value=''};
+['dragover','dragenter'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.add('drag')}));
+['dragleave','drop'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.remove('drag')}));
+drop.addEventListener('drop',e=>{if(e.dataTransfer.files[0])load(e.dataTransfer.files[0])});
+
+async function load(f){
+ if(!/\.pdf$/i.test(f.name))return note('Please choose a PDF file.','err');
+ note('Reading your PDF…','info');$('choose').disabled=true;
+ try{
+  const d=new FormData();d.append('file',f);
+  const r=await fetch('/edit/analyze',{method:'POST',body:d});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(j.error||'Could not read this PDF.');
+  file=f;pages=j.pages;$('start').hidden=true;$('work').hidden=false;build();setMode('edit');
+  note(pages.some(p=>p.spans.length)?'':'No editable text found (this may be a scanned PDF). You can still add text and signatures.','info');
+ }catch(e){note(e.message,'err')}
+ finally{$('choose').disabled=false}
+}
+
+/* ---------- page rendering ---------- */
+const pct=(v,t)=>(v/t*100)+'%';
+function setK(){document.querySelectorAll('.pg').forEach(b=>b.style.setProperty('--k',b.clientWidth/pages[+b.dataset.p].w))}
+addEventListener('resize',setK);
+function build(){
+ const holder=$('pages');holder.innerHTML='';
+ pages.forEach((pg,pi)=>{
+  const box=document.createElement('div');box.className='pg';box.dataset.p=pi;box.style.aspectRatio=pg.w+'/'+pg.h;
+  const img=new Image();img.src=pg.img;img.alt='Page '+(pi+1);img.draggable=false;box.append(img);
+  pg.spans.forEach((s,si)=>{
+   const e=document.createElement('div');e.className='sp';e.contentEditable='true';e.spellcheck=false;e.textContent=s.t;e.dataset.i=si;
+   const [x0,y0,x1,y1]=s.b,h=y1-y0;
+   Object.assign(e.style,{left:pct(x0,pg.w),top:pct(y0,pg.h),minWidth:pct(x1-x0,pg.w),height:pct(h,pg.h),
+    fontSize:`calc(var(--k)*${s.s}px)`,lineHeight:`calc(var(--k)*${h}px)`});
+   e.style.setProperty('--c','#'+(s.c&0xffffff).toString(16).padStart(6,'0'));
+   e.oninput=()=>e.classList.toggle('chg',e.textContent!==s.t);
+   e.onkeydown=ev=>{if(ev.key==='Enter'){ev.preventDefault();e.blur()}};
+   box.append(e);
+  });
+  holder.append(box);
+ });
+ setK();
+}
+document.addEventListener('paste',e=>{
+ if(!e.target.isContentEditable)return;e.preventDefault();
+ let t=e.clipboardData.getData('text/plain')||'';
+ if(e.target.classList.contains('sp'))t=t.replace(/\s*\n\s*/g,' ');
+ document.execCommand('insertText',false,t);
+});
+
+/* ---------- add text / signature ---------- */
+function removeBtn(d){const x=document.createElement('button');x.type='button';x.className='x';x.textContent='×';x.setAttribute('aria-label','Remove');x.onclick=()=>d.remove();d.append(x)}
+function addText(box,pg,x,y){
+ const size=Math.min(Math.max(+$('fs').value||12,4),200),color=$('fc').value;
+ const d=document.createElement('div');d.className='add';Object.assign(d.dataset,{x,y,size,color});
+ Object.assign(d.style,{left:pct(x,pg.w),top:pct(y,pg.h)});
+ const t=document.createElement('span');t.className='tx';t.contentEditable='true';t.spellcheck=false;t.textContent='Type here';
+ Object.assign(t.style,{fontSize:`calc(var(--k)*${size}px)`,color});
+ d.append(t);removeBtn(d);box.append(d);
+ t.focus();const r=document.createRange();r.selectNodeContents(t);const s=getSelection();s.removeAllRanges();s.addRange(r);
+ setMode('edit');
+}
+function addSig(box,pg,x,y){
+ const w=Math.min(150,pg.w*0.6),h=w*sig.ratio;
+ const d=document.createElement('div');d.className='sig';Object.assign(d.dataset,{x,y,w,h});d._png=sig.url;
+ Object.assign(d.style,{left:pct(x,pg.w),top:pct(y,pg.h),width:pct(w,pg.w),height:pct(h,pg.h)});
+ const i=new Image();i.src=sig.url;i.draggable=false;d.append(i);removeBtn(d);box.append(d);setMode('edit');
+}
+$('pages').addEventListener('click',e=>{
+ if(mode!=='add'&&mode!=='place')return;
+ const box=e.target.closest('.pg');if(!box||e.target.closest('.add,.sig'))return;
+ const pg=pages[+box.dataset.p],r=box.getBoundingClientRect();
+ const x=(e.clientX-r.left)/r.width*pg.w,y=(e.clientY-r.top)/r.height*pg.h;
+ mode==='add'?addText(box,pg,x,y):addSig(box,pg,x,y);
+});
+
+/* ---------- signature pad ---------- */
+const cv=$('cv'),cx=cv.getContext('2d');let drawing=false;
+cx.lineWidth=3;cx.lineCap='round';cx.lineJoin='round';cx.strokeStyle='#111';
+const pt=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*cv.width/r.width,(e.clientY-r.top)*cv.height/r.height]};
+cv.onpointerdown=e=>{drawing=true;cv.setPointerCapture(e.pointerId);const[a,b]=pt(e);cx.beginPath();cx.moveTo(a,b);cx.lineTo(a+.1,b+.1);cx.stroke()};
+cv.onpointermove=e=>{if(!drawing)return;const[a,b]=pt(e);cx.lineTo(a,b);cx.stroke()};
+cv.onpointerup=cv.onpointercancel=()=>{drawing=false};
+$('sign').onclick=()=>{cx.clearRect(0,0,cv.width,cv.height);$('modal').hidden=false};
+$('clr').onclick=()=>cx.clearRect(0,0,cv.width,cv.height);
+$('cancel').onclick=()=>{$('modal').hidden=true};
+$('use').onclick=()=>{
+ const w=cv.width,h=cv.height,d=cx.getImageData(0,0,w,h).data;let x0=w,y0=h,x1=-1,y1=-1;
+ for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(d[(y*w+x)*4+3]>0){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+ if(x1<0)return;
+ const m=6,t=document.createElement('canvas');t.width=x1-x0+1+2*m;t.height=y1-y0+1+2*m;
+ t.getContext('2d').drawImage(cv,x0-m,y0-m,t.width,t.height,0,0,t.width,t.height);
+ sig={url:t.toDataURL('image/png'),ratio:t.height/t.width};
+ $('modal').hidden=true;setMode('place');
+};
+
+/* ---------- save ---------- */
+$('save').onclick=async()=>{
+ const rep=[],add=[],sigs=[];
+ document.querySelectorAll('.sp.chg').forEach(e=>{
+  const pi=+e.closest('.pg').dataset.p,s=pages[pi].spans[+e.dataset.i],t=e.textContent;
+  if(t!==s.t)rep.push({page:pi,bbox:s.b,origin:s.o,text:t,size:s.s,color:s.c,font:s.f});
+ });
+ document.querySelectorAll('.add').forEach(e=>{
+  const t=e.querySelector('.tx').innerText.replace(/\u00a0/g,' ');
+  if(t.trim())add.push({page:+e.closest('.pg').dataset.p,x:+e.dataset.x,y:+e.dataset.y,size:+e.dataset.size,color:e.dataset.color,text:t});
+ });
+ document.querySelectorAll('.sig').forEach(e=>sigs.push({page:+e.closest('.pg').dataset.p,x:+e.dataset.x,y:+e.dataset.y,w:+e.dataset.w,h:+e.dataset.h,png:e._png}));
+ if(!rep.length&&!add.length&&!sigs.length)return note('Make at least one change first.','err');
+ const btn=$('save');btn.disabled=true;btn.textContent='Saving…';note('');
+ try{
+  const d=new FormData();d.append('file',file);d.append('edits',JSON.stringify({replace:rep,add,sigs}));
+  const r=await fetch('/edit/save',{method:'POST',body:d});
+  if(!r.ok){let m='Could not save the PDF.';try{m=(await r.json()).error||m}catch{}throw new Error(m)}
+  const b=await r.blob();if(!b.size)throw new Error('The server returned an empty file.');
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='edited_'+file.name;
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+  note('Done! Your edited PDF has been downloaded. Please open it and check the changes.','ok');
+ }catch(e){note(e.message,'err')}
+ finally{btn.disabled=false;btn.textContent='Download PDF'}
+};
+</script>
+</body>
+</html>
