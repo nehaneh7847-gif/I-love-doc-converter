@@ -1,9 +1,10 @@
-import io, os, re, shutil, subprocess, tempfile, uuid, zipfile
+import base64, io, json, os, re, shutil, subprocess, tempfile, uuid, zipfile
 from pathlib import Path
 from flask import Flask, render_template, request, send_file, jsonify
 from werkzeug.utils import secure_filename
 from PIL import Image
 from pypdf import PdfReader, PdfWriter
+import fitz  # PyMuPDF
 import img2pdf
 import pytesseract
 from pdf2docx import Converter
@@ -320,6 +321,159 @@ def convert():
 @app.errorhandler(413)
 def too_large(_):
     return jsonify({"error": "Upload too large. Maximum total upload size is 100 MB."}), 413
+
+# ---------------------------------------------------------------------------
+# PDF editor: edit existing text, add new text, place a signature image
+# ---------------------------------------------------------------------------
+EDIT_MAX_PAGES = 30
+EDIT_ZOOM = 1.5
+
+def _rgb_int(c):
+    c = int(c or 0)
+    return (((c >> 16) & 255) / 255, ((c >> 8) & 255) / 255, (c & 255) / 255)
+
+def _rgb_hex(h):
+    h = (h or "#000000").lstrip("#")
+    try:
+        return tuple(int(h[i:i + 2], 16) / 255 for i in (0, 2, 4))
+    except Exception:
+        return (0, 0, 0)
+
+def _base14(name):
+    n = (name or "").lower()
+    bold = any(k in n for k in ("bold", "black", "heavy", "semibold"))
+    ital = "italic" in n or "oblique" in n
+    if any(k in n for k in ("courier", "mono", "consolas")):
+        fam = ("cour", "cobo", "coit", "cobi")
+    elif ("sans" not in n and "arial" not in n and "helvet" not in n and "calibri" not in n) and any(
+            k in n for k in ("times", "serif", "georgia", "garamond", "palatino", "minion", "cambria", "roman")):
+        fam = ("tiro", "tibo", "tiit", "tibi")
+    else:
+        fam = ("helv", "hebo", "heit", "hebi")
+    return fam[(1 if bold else 0) + (2 if ital else 0)]
+
+def _pick_font(doc, page, srcfont, text):
+    """Prefer the PDF's own embedded font if it has every glyph needed; else closest base-14 font."""
+    if srcfont:
+        want = srcfont.split("+")[-1]
+        try:
+            for item in page.get_fonts():
+                if item[3].split("+")[-1] != want:
+                    continue
+                buf = doc.extract_font(item[0])[3]
+                if not buf:
+                    continue
+                font = fitz.Font(fontbuffer=buf)
+                if all(font.has_glyph(ord(ch)) for ch in text if not ch.isspace()):
+                    return "emb%d" % item[0], buf
+        except Exception:
+            pass
+    return _base14(srcfont), None
+
+def _put_text(doc, page, pt, text, size, color, srcfont):
+    fn, buf = _pick_font(doc, page, srcfont, text)
+    if buf:
+        page.insert_font(fontname=fn, fontbuffer=buf)
+    page.insert_text(fitz.Point(*pt), text, fontname=fn, fontsize=size, color=color)
+
+def apply_pdf_edits(doc, edits):
+    per_page = {}
+    for kind in ("replace", "add", "sigs"):
+        for e in edits.get(kind, []):
+            per_page.setdefault(int(e["page"]), {"replace": [], "add": [], "sigs": []})[kind].append(e)
+    for pno, items in per_page.items():
+        if pno < 0 or pno >= len(doc):
+            continue
+        page = doc[pno]
+        rot = page.rotation
+        if rot:
+            page.set_rotation(0)
+        try:
+            for e in items["replace"]:
+                x0, y0, x1, y1 = [float(v) for v in e["bbox"]]
+                h = y1 - y0
+                page.add_redact_annot(fitz.Rect(x0, y0 + h * 0.2, x1, y1 - h * 0.2), fill=False)
+            if items["replace"]:
+                page.apply_redactions(images=fitz.PDF_REDACT_IMAGE_NONE)
+            for e in items["replace"]:
+                text = str(e.get("text", ""))[:2000]
+                if text.strip():
+                    _put_text(doc, page, (float(e["origin"][0]), float(e["origin"][1])), text,
+                              float(e["size"]), _rgb_int(e.get("color")), e.get("font"))
+            for e in items["add"]:
+                size = min(max(float(e.get("size", 12)), 4), 200)
+                color = _rgb_hex(e.get("color"))
+                for i, line in enumerate(str(e.get("text", ""))[:4000].split("\n")):
+                    if line.strip():
+                        _put_text(doc, page, (float(e["x"]), float(e["y"]) + size + i * size * 1.2),
+                                  line, size, color, None)
+            for e in items["sigs"]:
+                raw = base64.b64decode(str(e["png"]).split(",")[-1])
+                if len(raw) > 3_000_000:
+                    continue
+                x, y, w, h = (float(e[k]) for k in ("x", "y", "w", "h"))
+                page.insert_image(fitz.Rect(x, y, x + w, y + h), stream=raw)
+        finally:
+            if rot:
+                page.set_rotation(rot)
+
+@app.get("/edit")
+def edit_page():
+    return render_template("edit.html")
+
+@app.post("/edit/analyze")
+def edit_analyze():
+    try:
+        f = request.files.get("file")
+        if not f or not f.filename.lower().endswith(".pdf"):
+            raise ValueError("Please upload a PDF file.")
+        doc = fitz.open(stream=f.read(), filetype="pdf")
+        if doc.needs_pass:
+            raise ValueError("This PDF is password protected. Please unlock it first.")
+        if len(doc) > EDIT_MAX_PAGES:
+            raise ValueError(f"This PDF has {len(doc)} pages. The editor supports up to {EDIT_MAX_PAGES} pages; use Split PDF first.")
+        pages = []
+        for page in doc:
+            if page.rotation:
+                page.set_rotation(0)
+            spans = []
+            for b in page.get_text("dict")["blocks"]:
+                if b.get("type") != 0:
+                    continue
+                for line in b["lines"]:
+                    for s in line["spans"]:
+                        if not s["text"].strip():
+                            continue
+                        spans.append({"b": [round(v, 2) for v in s["bbox"]], "o": [round(v, 2) for v in s["origin"]],
+                                      "t": s["text"], "s": round(s["size"], 2), "c": s["color"], "f": s["font"]})
+                        if len(spans) >= 4000:
+                            break
+            pix = page.get_pixmap(matrix=fitz.Matrix(EDIT_ZOOM, EDIT_ZOOM), alpha=False)
+            img = "data:image/jpeg;base64," + base64.b64encode(pix.tobytes("jpeg", jpg_quality=80)).decode()
+            pages.append({"w": page.rect.width, "h": page.rect.height, "img": img, "spans": spans})
+        doc.close()
+        return jsonify({"pages": pages})
+    except Exception as e:
+        return jsonify({"error": str(e) or "Could not read this PDF."}), 400
+
+@app.post("/edit/save")
+def edit_save():
+    try:
+        f = request.files.get("file")
+        if not f or not f.filename.lower().endswith(".pdf"):
+            raise ValueError("Please upload a PDF file.")
+        edits = json.loads(request.form.get("edits", "{}"))
+        doc = fitz.open(stream=f.read(), filetype="pdf")
+        if doc.needs_pass:
+            raise ValueError("This PDF is password protected. Please unlock it first.")
+        apply_pdf_edits(doc, edits)
+        data = doc.tobytes(garbage=3, deflate=True)
+        doc.close()
+        name = "edited_" + (secure_filename(f.filename) or "document.pdf")
+        return send_file(io.BytesIO(data), mimetype="application/pdf", as_attachment=True, download_name=name)
+    except Exception as e:
+        return jsonify({"error": str(e) or "Could not save the edited PDF."}), 400
+
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000, debug=False)
