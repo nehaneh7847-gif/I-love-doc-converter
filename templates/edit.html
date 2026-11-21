@@ -227,7 +227,7 @@ $('save').onclick=async()=>{
   const b=await r.blob();if(!b.size)throw new Error('The server returned an empty file.');
   const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='edited_'+file.name;
   document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000);
-  note('Done! Your edited PDF has been downloaded. Please open it and check the changes.','ok');
+  const fi=r.headers.get('X-Font-Info');note('Done! Your edited PDF has been downloaded. Please open it and check the changes.'+(fi?' Fonts used: '+fi+'.':''),'ok');
  }catch(e){note(e.message,'err')}
  finally{btn.disabled=false;btn.textContent='Download PDF'}
 };
