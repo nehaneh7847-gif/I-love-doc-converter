@@ -458,7 +458,7 @@ def apply_pdf_edits(doc, edits):
                                   line, size, color, None, used)
             for e in items["sigs"]:
                 raw = base64.b64decode(str(e["png"]).split(",")[-1])
-                if len(raw) > 3_000_000:
+                if len(raw) > 10_000_000:
                     continue
                 x, y, w, h = (float(e[k]) for k in ("x", "y", "w", "h"))
                 page.insert_image(fitz.Rect(x, y, x + w, y + h), stream=raw)
